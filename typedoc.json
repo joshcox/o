@@ -1,0 +1,12 @@
+{
+  "name": "o",
+  "readme": "./README.md",
+  "mode": "modules",
+  "out": "api",
+  "theme": "default",
+  "hideGenerator": true,
+  "ignoreCompilerErrors": true,
+  "module": "commonjs",
+  "target": "es6",
+  "exclude": "!**/src/**/*.ts"
+}

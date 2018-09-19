@@ -1,0 +1,50 @@
+{
+  "name": "o",
+  "description": "Type Safe Function Composition",
+  "version": "0.3.1",
+  "keywords": [
+    "compose",
+    "composition",
+    "function",
+    "functional",
+    "o"
+  ],
+  "homepage": "https://joshcox.github.io/o/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joshcox/o.git"
+  },
+  "bugs": {
+    "url": "https://github.com/joshcox/o/issues"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Josh Cox",
+    "email": "cox.josh.d@gmail.com"
+  },
+  "scripts": {
+    "build": "tsc --declaration",
+    "build:watch": "tsc --declaration -w",
+    "clean": "npm run clean:api && npm run clean:lib",
+    "clean:api": "rimraf ./api",
+    "clean:lib": "rimraf ./lib",
+    "deploy:docs": "npm run clean:api && npm run docs && gh-pages -d api -m \"Update: Docs\"",
+    "docs": "typedoc --options typedoc.json",
+    "lint": "tslint -p tsconfig.json -t stylish",
+    "test": "jest --config jest.config.js --forceExit --color --detectOpenHandles",
+    "test:watch": "jest --config jest.config.js --color --detectOpenHandles --watchAll"
+  },
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "devDependencies": {
+    "@types/jest": "^23.3.1",
+    "@types/node": "^10.5.5",
+    "@types/rimraf": "^2.0.2",
+    "gh-pages": "^1.2.0",
+    "jest": "^23.4.2",
+    "ts-jest": "^23.0.1",
+    "tslint": "^5.11.0",
+    "typedoc": "^0.12.0",
+    "typescript": "^3.0.1"
+  }
+}

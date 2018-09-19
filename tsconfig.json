@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2017",
+    "noImplicitAny": true,
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "outDir": "lib",
+    "allowJs": false,
+    "checkJs": false,
+    "pretty": true,
+    "alwaysStrict": true,
+    "strict": true,
+    "esModuleInterop": true
+  },
+  "exclude": [
+    "node_modules"
+  ],
+  "include": [
+    "src/**/*"
+  ]
+}
