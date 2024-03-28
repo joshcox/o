@@ -6,13 +6,6 @@ export type Arg<T> = T extends (arg: infer Arg) => any
     ? Arg
     : never;
 
-export type Return<Fn> = Fn extends (...args: any[]) => infer Return
-    ? Return
-    : never;
-
-type ReturnTest1 = Return<() => string>;
-type ReturnTest2 = Return<(arg: string) => string>;
-type ReturnTest3 = Return<(arg: string, arg2: number) => string>;
 type BooleanExtendsUnknown = boolean extends unknown ? true : false; //true
 type UnkownExtendsBoolean = unknown extends boolean ? true : false; //false
 type RestParametersExtendsUnknown = [...boolean[]] extends [...unknown[]] ? true : false; //false
