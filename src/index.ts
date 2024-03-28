@@ -2,28 +2,28 @@ import { Every, When } from "./types/boolean";
 import { Extends } from "./types/checks";
 import { Arg } from "./types/function";
 
-type Fn = (arg: any) => any;
-
-type EntryFn = (...args: any[]) => any;
-
-type AdjacentPairs<Fns extends any[]> = Fns extends [infer X1, infer X2, ...infer Rest]
-    ? [[X1, X2], ...AdjacentPairs<[X2, ...Rest]>]
+type AdjacentFunctions<Fns extends any[]> = Fns extends [infer X1, infer X2, ...infer Rest]
+    ? [[X1, X2], ...AdjacentFunctions<[X2, ...Rest]>]
     : [];
 
 type IsComposable<Pairs extends [any, any][]> = {
     [Index in keyof Pairs]: Extends<Arg<Pairs[Index][0]>, ReturnType<Pairs[Index][1]>>;
 };
 
-type ComposeFunctions<T extends any[]> = When<Every<IsComposable<AdjacentPairs<T>>>, T>;
+type SafeFns<T extends any[]> = When<Every<IsComposable<AdjacentFunctions<T>>>, T>;
 
 export function compose(): () => void;
-export function compose<R extends Fn>(fn: R): R;
-export function compose<R extends Fn, U extends Fn[], F extends EntryFn>(...fns: ComposeFunctions<[R, ...U, F]>): (...args: Parameters<F>) => ReturnType<R>;
-export function compose(...fns: [...Fn[], EntryFn]): (...args: any) => any {
+export function compose<R extends (...args: any[]) => any>(fn: R): R;
+export function compose<
+    R extends (arg: any) => any,
+    U extends ((arg: any) => any)[],
+    F extends (...args: any[]) => any
+>(...fns: SafeFns<[R, ...U, F]>): (...args: Parameters<F>) => ReturnType<R>;
+export function compose(...fns: any[]): (...args: any) => any {
     if (fns.length === 0) return () => { };
     if (fns.length === 1) return fns[0];
     else return (...args) => {
-        const entry: EntryFn = fns[fns.length - 1];
+        const entry: (...args: any[]) => any = fns[fns.length - 1];
         return fns.slice(0, -1).reduceRight((res, fn) => fn(res), entry(...args));
     }
 }
