@@ -1,67 +1,48 @@
-// Get the head type from a tuple of types
-type Head<T extends any[]> = T extends [infer H, ...any[]] ? H : never;
+import { Every, When } from "./types/boolean";
+import { Extends } from "./types/checks";
+import { Resolve } from "./types/control";
+import { Arg, Args, Return } from "./types/function";
+import { First, Last } from "./types/tuple";
 
-// Get the tail type from a tuple of types
-type Tail<T extends any[]> = ((...t: T) => void) extends ((h: any, ...rest: infer R) => void) ? R : never;
+type Fn = (arg: any) => any;
 
-interface IFArr extends Array<(a: any) => any> {}
+type EntryFn = (...args: any[]) => any;
 
-// Get the Last type from a tuple of types
-type Last<T extends any[]> = Last_<T>;
-type Last_<T extends IFArr> = {
-    0: Head<T>,
-    // @ts-ignore
-    1: Last_<Tail<T>>
-}[T extends [any] ? 0 : 1];
+type ComposeFnTuple = [...Fn[], EntryFn];
 
-// Get the type of the first argument of a function
-type ArgumentType<T> = T extends (a: infer U) => any ? U : any;
+type AdjacentPairs<Fns extends any[]> = Fns extends [infer X1, infer X2, ...infer Rest]
+    ? [[X1, X2], ...AdjacentPairs<[X2, ...Rest]>]
+    : [];
 
-// Get the argument type of the last function (syntactically; first during runtime) in a compose chain
-type ComposedArgumentType<FS extends Array<(arg: any) => any>> =
-    ArgumentType<Last<FS>>;
+type IsComposable<Pairs extends [any, any][]> = {
+    [Index in keyof Pairs]: Extends<Arg<Pairs[Index][0]>, Return<Pairs[Index][1]>>;
+};
 
-// Get the argument type of the first function (syntactically; last during runtime) in a compose chain
-type ComposedReturnType<FS extends Array<(arg: any) => any>> =
-    FS extends [infer HEAD, ...any[]]
-        ? HEAD extends (a: any) => any
-            ? ReturnType<HEAD>
-            : never
-        : never;
+type ComposeFunctions<T extends any[]> = When<Every<IsComposable<AdjacentPairs<T>>>, T>;
 
-// Create the Composed function signature by creating a function type where
-// the input is the argument type of the last function and the output is the return type
-// of the first function
-type ComposeSignature<FS extends Array<(a: any) => any>> =
-    (arg: ComposedArgumentType<FS>) => ComposedReturnType<FS>;
+type ComposeReturn<T extends any[]> = Resolve<(...args: Args<Last<T>>) => Return<First<T>>>;
 
-enum Bool {
-    True,
-    False
+export function compose(...fns: []): never;
+export function compose<Fns extends [EntryFn]>(...fns: Fns): Fns[0];
+export function compose<Fns extends ComposeFnTuple>(...fns: Fns): ComposeReturn<Fns>;
+export function compose<Fns extends ComposeFnTuple>(
+    ...fns: [...ComposeFunctions<Fns>]
+): ComposeReturn<Fns> {
+    if (fns.length === 0) {
+        throw new Error('compose requires at least one function');
+    }
+    if (fns.length === 1) {
+        return fns[0] as ComposeReturn<Fns>;
+    }
+
+    return (...args) => {
+        const first: EntryFn = fns[fns.length - 1];
+        return fns.slice(0, -1).reduceRight((res, fn) => fn(res), first(...args));
+    }
 }
 
-type ValidatePassThrough<F1, F2> =
-    F1 extends (a: any) => any
-        ? F2 extends (a: any) => any
-            ? ArgumentType<F1> extends ReturnType<F2> ? Bool.True : Bool.False
-            : Bool.False
-        : Bool.False;
+const fromStr = compose((x: string) => parseInt(x, 10));
+const add2 = (x: number) => x + 2;
+const toStr = (x: number) => x.toString();
 
-// Validate passthrough/intermediate types
-// compose(string -> boolean, number -> string) - will ensure that the itermediate value exchanges type correctly
-type Composed<FS extends Array<(a: any) => any>> = Composed_<FS, FS>;
-type Composed_<S extends Array<(a: any) => any>, T extends Array<(a: any) => any>> = {
-    0: ComposeSignature<S>,
-    1: ValidatePassThrough<Head<T>, Head<Tail<T>>> extends Bool.True
-        ? Composed_<S, Tail<T>>
-        : never
-}[T extends [any] ? 0 : 1];
-
-function compose(): <A>(arg: A) => A;
-function compose<F extends (arg: any) => any>(f: F): F;
-function compose<FS extends Array<(arg: any) => any>>(...fns: FS): Composed<FS>;
-function compose<FS extends Array<(arg: any) => any>>(...fns: FS) {
-    return <A>(arg: A) => fns.reduce((a, f) => f(a), arg);
-}
-
-export { compose as o };
+const add3 = compose(toStr, add2, fromStr);
